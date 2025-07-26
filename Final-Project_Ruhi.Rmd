@@ -1,0 +1,146 @@
+---
+title: "Untitled"
+author: "Fatema Ruhi"
+date: "4/19/2022"
+output: html_document
+---
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Reading data into R
+data_1 = read.csv("D:/SEMO MATH/Spring-22/MA-575 Time Series and Forcasting/coin_Bitcoin.csv", quote="\"", comment.char="")
+
+data_2<- read.csv("D:/SEMO MATH/Spring-22/MA-575 Time Series and Forcasting/coin_Ethereum.csv", quote="\"", comment.char="")
+
+# Specifying the Market capital column from the datasets
+Marketcap_1 = data_1$Marketcap
+Marketcap_2 = data_2$Marketcap
+# Taking the log-return of Market capital
+log_return_1 = log(Marketcap_1+1)
+log_return_2 = log(Marketcap_2+1)
+# Time series plots of log-return
+plot_1 = ts(log_return_1, frequency=365, start =c(2013,1))
+plot(plot_1)
+plot_2 = ts(log_return_2, frequency=365, start =c(2015,1))
+plot(plot_2)
+```
+##
+
+```{r}
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Finding Skewness and Kurtosis of the data
+library(psych)
+Desc_1 = na.omit(describe(log_return_1))
+Desc_1
+Desc_2 = na.omit(describe(log_return_1))
+Desc_2
+```
+```{r}
+#JB test to check the normality and adequacy-volatility
+skewness_1 = Desc_1$skew
+kurtosis_1 = Desc_1$kurtosis
+skewness_2 = Desc_2$skew
+kurtosis_2 = Desc_2$kurtosis
+
+skewness_exchange_rate_1 = (skewness_1)/sqrt(6/NROW(log_return_1))
+#abs(skewness_exchange_rate_1)
+kurtosis_exchange_rate_1 = (kurtosis_1)/sqrt(24/NROW(log_return_1))
+#abs(kurtosis_exchange_rate_1)
+
+skewness_exchange_rate_2 = (skewness_2)/sqrt(6/NROW(log_return_2))
+#abs(skewness_exchange_rate_2)
+kurtosis_exchange_rate_2 = (kurtosis_2)/sqrt(24/NROW(log_return_2))
+#abs(kurtosis_exchange_rate_2)
+
+JB_test_1 = abs(skewness_exchange_rate_1)*abs(skewness_exchange_rate_1) + abs(kurtosis_exchange_rate_1)*abs(kurtosis_exchange_rate_1)
+JB_test_1
+
+JB_test_2 = abs(skewness_exchange_rate_2)*abs(skewness_exchange_rate_2) + abs(kurtosis_exchange_rate_2)*abs(kurtosis_exchange_rate_2)
+JB_test_2
+```
+**Write down the comments based on the output**
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Test for Serial Correlation
+Box.test(log_return_1, lag = 12, type = "Ljung")
+# Test for Serial Correlation
+Box.test(log_return_2, lag = 12, type = "Ljung")
+```
+From both tests, the p- values < .05, which rejects the null hypothesis that means the rate of returns have the ARCH effect.
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#stationarity check in order to find out the p,q value
+acf(plot_1)
+pacf(plot_1)
+acf(plot_2)
+pacf(plot_2)
+library(urca) 
+library(fUnitRoots)
+adfTest(log_return_1, lags= 20)
+#p value>.05, follows the null hypothesis i.e., it has unit root and non-stationary.
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#since this is not stationary, we will take the 1st difference to see if it is stationary
+log1_diff_1 = diff(log_return_1)
+adfTest(log1_diff_1, lags = 20)
+log2_diff_1 = diff(log_return_2)
+a = ts(log2_diff_1, frequency=365, start =c(2015,1))
+plot(a)
+acf(a)
+pacf(a)
+adfTest(log2_diff_1, lags = 20)
+# here the P- value < .05 (H1), hence it has no unit root but it is stationary.
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#selecting the p,q by eacf test
+library(TSA)
+eacf(log1_diff_1)
+eacf(log2_diff_1)
+
+# model fit
+model1_1 = arima(log1_diff_1, order = c(1,0,1))
+model1_1
+summary(model1_1)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+model2_1 = arima(log2_diff_1, order = c(1,0,1))
+model2_1
+model2_2 = arima(log2_diff_1, order = c(7,0,2))
+model2_2
+model2_3 = arima(log2_diff_1, order = c(4,0,1))
+model2_3
+model2_4 = arima(log2_diff_1, order = c(2,0,2))
+model2_4
+#based on AIC, model2_1 is better model.
+summary(model2_1)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#fitting the GARCH model
+library(fGarch)
+gm_1n = garchFit( ~ garch(1,0,1), data = log1_diff_1, cond.dist = "std", trace = F)
+summary(gm_1n)
+gm_1 = garchFit( ~ garch(1,0,1), data = log1_diff_1, cond.dist = "std", trace = F)
+summary(gm_1)
+gm_2 = garchFit( ~ garch(1,0,0), data = log1_diff_1, cond.dist = "std", trace = F)
+summary(gm_2)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#ARCH-LM test
+library(FinTS)
+ArchTest(log1_diff_1)
+ArchTest(log2_diff_1)
+```
+
