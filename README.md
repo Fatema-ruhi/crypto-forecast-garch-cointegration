@@ -52,6 +52,7 @@ The models predicted 10 future log returns for both BTC and ETH. These results c
 
 ## Project Structure
 crypto-forecast-garch-cointegration/
+
 │
 
 ├── data/ # Raw and processed CSVs
