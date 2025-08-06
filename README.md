@@ -49,7 +49,7 @@ The models predicted 10 future log returns for both BTC and ETH. These results c
 
 - R (garchFit, tseries, urca, vars, tsDyn, forecast)
 - Statistical modeling and hypothesis testing
-- Complete R code -> (https://github.com/Fatema-ruhi/crypto-forecast-garch-cointegration/blob/5d6ade12b369177ceb84043d0083e2f6ea94bb05/Final-Project_Ruhi.Rmd)
+- [Complete R code](https://github.com/Fatema-ruhi/crypto-forecast-garch-cointegration/blob/5d6ade12b369177ceb84043d0083e2f6ea94bb05/Final-Project_Ruhi.Rmd)
 
 ## Project Structure
 crypto-forecast-garch-cointegration/
